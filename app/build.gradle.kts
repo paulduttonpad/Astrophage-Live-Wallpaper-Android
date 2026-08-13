@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.plvsultra.astrophage.wallpaper"
+    namespace = "com.paddigital.astrophagelivewallpaper"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.plvsultra.astrophage.wallpaper"
+        applicationId = "com.paddigital.astrophagelivewallpaper"
         minSdk = 35
         targetSdk = 37
         versionCode = 1
