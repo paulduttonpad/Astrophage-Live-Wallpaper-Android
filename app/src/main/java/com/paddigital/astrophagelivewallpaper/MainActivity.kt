@@ -34,7 +34,7 @@ class MainActivity : Activity() {
         }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
 
         root.addView(TextView(this).apply {
-            text = "Interactive Petrova-line Android live wallpaper"
+            text = "GPU-accelerated interactive Android live wallpaper"
             textSize = 16f
             setTextColor(Color.rgb(210, 210, 210))
             gravity = Gravity.CENTER
@@ -54,7 +54,7 @@ class MainActivity : Activity() {
         })
 
         root.addView(TextView(this).apply {
-            text = "Touch and multi-touch interaction is enabled on launchers that forward live-wallpaper touch events. Home-screen swipes also drive subtle parallax through the field."
+            text = "V2 renders the Astrophage glow and trails on the GPU and automatically lowers its frame rate while idle to reduce battery use. Touch/multi-touch and home-screen swipe interaction remain enabled."
             textSize = 14f
             setTextColor(Color.rgb(170, 170, 170))
             setPadding(0, dp(28), 0, 0)
