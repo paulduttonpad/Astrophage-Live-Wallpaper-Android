@@ -23,7 +23,7 @@ object WallpaperPreferences {
         val preferredTrailScale: Float,
         val maxTrailPixels: Float,
         val foregroundMultiplier: Float,
-        val backgroundMultiplier: Float
+        val backgroundMultiplier: Float,
     ) {
         BATTERY_SAVER("battery", 15, 30, 0.50f, 900_000f, 0.75f, 0.60f),
         BALANCED("balanced", 20, 60, 0.70f, 1_600_000f, 0.90f, 0.80f),
@@ -47,7 +47,7 @@ object WallpaperPreferences {
         val trailAlpha: Float = 0.18f,
         val touchEnabled: Boolean = true,
         val parallaxEnabled: Boolean = true,
-        val powerMode: PowerMode = PowerMode.BALANCED
+        val powerMode: PowerMode = PowerMode.BALANCED,
     )
 
     fun prefs(context: Context): SharedPreferences =
@@ -74,7 +74,7 @@ object WallpaperPreferences {
             trailAlpha = p.getFloat(KEY_TRAILS, 0.18f).coerceIn(0.06f, 0.45f),
             touchEnabled = p.getBoolean(KEY_TOUCH, true),
             parallaxEnabled = p.getBoolean(KEY_PARALLAX, true),
-            powerMode = migratePowerModeIfNeeded(p)
+            powerMode = migratePowerModeIfNeeded(p),
         )
     }
 }

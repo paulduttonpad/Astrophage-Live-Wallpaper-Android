@@ -103,16 +103,16 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
                     -1f, -1f, 0f, 0f,
                      1f, -1f, 1f, 0f,
                     -1f,  1f, 0f, 1f,
-                     1f,  1f, 1f, 1f
-                )
+                     1f,  1f, 1f, 1f,
+                ),
             )
             position(0)
         }
 
     fun updateConfig(newConfig: WallpaperPreferences.Config) {
         if (newConfig == config) return
-        val densityChanged = newConfig.foregroundDensity != config.foregroundDensity ||
-            newConfig.backgroundDensity != config.backgroundDensity
+        val densityChanged = (newConfig.foregroundDensity != config.foregroundDensity) ||
+            (newConfig.backgroundDensity != config.backgroundDensity)
         val powerModeChanged = newConfig.powerMode != config.powerMode
         config = newConfig
         if (densityChanged || powerModeChanged) rebuildParticleCounts()
@@ -129,7 +129,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
     }
 
     fun resize(newWidth: Int, newHeight: Int) {
-        if (newWidth <= 0 || newHeight <= 0) return
+        if ((newWidth <= 0) || (newHeight <= 0)) return
         width = newWidth
         height = newHeight
         maxDistance = max(1f, height * INTERACTION_RADIUS)
@@ -171,12 +171,12 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
         val bounds = holder.surfaceFrame
         var currentWidth = width
         var currentHeight = height
-        if ((currentWidth <= 1 || currentHeight <= 1) && bounds.width() > 0 && bounds.height() > 0) {
+        if (((currentWidth <= 1) || (currentHeight <= 1)) && (bounds.width() > 0) && (bounds.height() > 0)) {
             resize(bounds.width(), bounds.height())
             currentWidth = width
             currentHeight = height
         }
-        if (currentWidth <= 1 || currentHeight <= 1) return
+        if (((currentWidth <= 1) || (currentHeight <= 1))) return
 
         if (buffersDirty && !recreateTrailBuffers()) return
 
@@ -221,7 +221,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
                     flowTime = flowTime,
                     width = width,
                     height = height,
-                    stepScale = stepScale
+                    stepScale = stepScale,
                 )
             }
 
@@ -262,7 +262,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
         if (abs(delta) < 0.0001f) return
 
         for (ball in particles) {
-            ball.vx -= delta * (4.5f + ball.depth * 7f)
+            ball.vx -= delta * (4.5f + (ball.depth * 7f))
             ball.energy = max(ball.energy, min(1f, abs(delta) * 5f))
         }
         for (p in backgroundParticles) {
@@ -271,12 +271,12 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
     }
 
     private fun applyPetrovaFlow(ball: Ball) {
-        if ((simulationStepCount + ball.flowSlot) % FLOW_RECALC_STEPS == 0L) {
+        if (((simulationStepCount + ball.flowSlot) % FLOW_RECALC_STEPS) == 0L) {
             val scale = 0.002f
             val n = SimpleNoise.noise(
                 ball.x * scale,
                 ball.y * scale,
-                flowTime + ball.depth * 10f
+                flowTime + (ball.depth * 10f),
             )
             ball.flowAngle = n * TWO_PI * 3f
         }
@@ -288,7 +288,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
     private fun interactWithPoint(ball: Ball, a: Attractor) {
         val dx = a.x - ball.x
         val dy = a.y - ball.y
-        val distanceSq = dx * dx + dy * dy
+        val distanceSq = (dx * dx) + (dy * dy)
         if (!distanceSq.isFinite() || distanceSq > maxDistanceSq) return
         if (distanceSq < 0.000001f) {
             ball.energy = 1f
@@ -319,7 +319,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
     }
 
     private fun rebuildParticleCounts() {
-        if (width <= 1 || height <= 1) return
+        if ((width <= 1) || (height <= 1)) return
 
         val foregroundDivisor = (64 + 24 - config.foregroundDensity).toFloat()
         val baseForeground = (((width / foregroundDivisor) *
@@ -344,7 +344,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
             backgroundParticles += BackgroundAstrophage(
                 randomRange(0f, width.toFloat()),
                 randomRange(0f, height.toFloat()),
-                random
+                random,
             )
         }
         while (backgroundParticles.size > backgroundCount) backgroundParticles.removeAt(backgroundParticles.lastIndex)
@@ -405,20 +405,20 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
             val pulseValue = ball.pulse(simTimeSeconds)
             if (ball.bokeh) {
                 var size = ball.r * lerp(16f, 44f, ball.depth)
-                size *= pulseValue * (1f + ball.energy * 0.5f)
+                size *= pulseValue * (1f + (ball.energy * 0.5f))
                 val drawSize = max(120f, size * 3.1f)
                 val alpha = (0.10f + ball.depth * 0.12f + ball.energy * 0.12f).coerceIn(0.07f, 0.40f)
                 addVertex(ball.x, ball.y, drawSize, alpha, KIND_BOKEH, ball.energy)
             } else {
                 var size = ball.r * lerp(2.8f, 7.2f, ball.depth)
-                size *= 1f + ball.energy * 0.8f
-                val drawSize = max(32f, size * (7.5f + ball.energy * 3.5f) * pulseValue)
+                size *= 1f + (ball.energy * 0.8f)
+                val drawSize = max(32f, (size * (7.5f + (ball.energy * 3.5f)) * pulseValue))
                 val alpha = (0.25f + ball.depth * 0.45f + ball.energy * 0.30f).coerceIn(0.15f, 1f)
                 addVertex(ball.x, ball.y, drawSize, alpha, KIND_ASTROPHAGE, ball.energy)
 
                 if (ball.spark) {
                     val sparkSize = max(20.0f, drawSize * 0.34f)
-                    val sparkAlpha = (0.25f + ball.energy * 0.55f).coerceIn(0f, 0.9f)
+                    val sparkAlpha = (0.25f + (ball.energy * 0.55f)).coerceIn(0f, 0.9f)
                     addVertex(ball.x, ball.y, sparkSize, sparkAlpha, KIND_SPARK, ball.energy)
                 }
             }
@@ -507,7 +507,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
                 EGL14.EGL_ALPHA_SIZE, 8,
                 EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
                 EGL14.EGL_SURFACE_TYPE, EGL14.EGL_WINDOW_BIT,
-                EGL14.EGL_NONE
+                EGL14.EGL_NONE,
             )
             val configs = arrayOfNulls<EGLConfig>(1)
             val numConfigs = IntArray(1)
@@ -519,7 +519,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
                     0,
                     configs.size,
                     numConfigs,
-                    0
+                    0,
                 ) || numConfigs[0] <= 0
             ) {
                 return false
@@ -532,16 +532,16 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
         if (eglContext == EGL14.EGL_NO_CONTEXT) {
             val contextAttributes = intArrayOf(
                 EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
-                EGL14.EGL_NONE
+                EGL14.EGL_NONE,
             )
             eglContext = EGL14.eglCreateContext(
                 eglDisplay,
                 chosenConfig,
                 EGL14.EGL_NO_CONTEXT,
                 contextAttributes,
-                0
+                0,
             )
-            if (eglContext == null || eglContext == EGL14.EGL_NO_CONTEXT) return false
+            if (eglContext == EGL14.EGL_NO_CONTEXT) return false
         }
 
         if (eglSurface == EGL14.EGL_NO_SURFACE) {
@@ -552,9 +552,9 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
                 chosenConfig,
                 holder.surface,
                 surfaceAttributes,
-                0
+                0,
             )
-            if (eglSurface == null || eglSurface == EGL14.EGL_NO_SURFACE) {
+            if (eglSurface == EGL14.EGL_NO_SURFACE) {
                 Log.e(TAG, "eglCreateWindowSurface failed: 0x${Integer.toHexString(EGL14.eglGetError())}")
                 return false
             }
@@ -575,7 +575,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
 
         particleProgram = createProgram(PARTICLE_VERTEX_SHADER, PARTICLE_FRAGMENT_SHADER)
         textureProgram = createProgram(TEXTURE_VERTEX_SHADER, TEXTURE_FRAGMENT_SHADER)
-        if (particleProgram == 0 || textureProgram == 0) {
+        if ((particleProgram == 0) || (textureProgram == 0)) {
             Log.e(TAG, "Unable to create OpenGL shader programs")
             return false
         }
@@ -613,7 +613,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
                 0,
                 GLES20.GL_RGBA,
                 GLES20.GL_UNSIGNED_BYTE,
-                null
+                null,
             )
 
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, trailFramebuffers[i])
@@ -622,7 +622,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
                 GLES20.GL_COLOR_ATTACHMENT0,
                 GLES20.GL_TEXTURE_2D,
                 trailTextures[i],
-                0
+                0,
             )
             if (GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER) != GLES20.GL_FRAMEBUFFER_COMPLETE) {
                 Log.e(TAG, "Trail framebuffer $i is incomplete")
@@ -644,7 +644,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
     }
 
     private fun deleteTrailBuffers() {
-        if (trailTextures[0] != 0 || trailTextures[1] != 0) {
+        if ((trailTextures[0] != 0) || (trailTextures[1] != 0)) {
             GLES20.glDeleteTextures(2, trailTextures, 0)
             trailTextures[0] = 0
             trailTextures[1] = 0
@@ -698,13 +698,13 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
     }
 
     private fun releaseEglSurface() {
-        if (eglDisplay != EGL14.EGL_NO_DISPLAY && eglSurface != EGL14.EGL_NO_SURFACE) {
+        if ((eglDisplay != EGL14.EGL_NO_DISPLAY) && (eglSurface != EGL14.EGL_NO_SURFACE)) {
             Log.d(TAG, "Releasing EGL surface")
             EGL14.eglMakeCurrent(
                 eglDisplay,
                 EGL14.EGL_NO_SURFACE,
                 EGL14.EGL_NO_SURFACE,
-                EGL14.EGL_NO_CONTEXT
+                EGL14.EGL_NO_CONTEXT,
             )
             EGL14.eglDestroySurface(eglDisplay, eglSurface)
             eglSurface = EGL14.EGL_NO_SURFACE
@@ -712,7 +712,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
     }
 
     fun release() {
-        if (eglDisplay != EGL14.EGL_NO_DISPLAY && eglSurface != EGL14.EGL_NO_SURFACE) {
+        if ((eglDisplay != EGL14.EGL_NO_DISPLAY) && (eglSurface != EGL14.EGL_NO_SURFACE)) {
             EGL14.eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext)
             if (glReady) {
                 deleteTrailBuffers()
@@ -723,7 +723,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
 
         releaseEglSurface()
 
-        if (eglDisplay != EGL14.EGL_NO_DISPLAY && eglContext != EGL14.EGL_NO_CONTEXT) {
+        if ((eglDisplay != EGL14.EGL_NO_DISPLAY) && (eglContext != EGL14.EGL_NO_CONTEXT)) {
             EGL14.eglDestroyContext(eglDisplay, eglContext)
         }
         if (eglDisplay != EGL14.EGL_NO_DISPLAY) EGL14.eglTerminate(eglDisplay)
@@ -736,8 +736,8 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
         textureProgram = 0
     }
 
-    private fun randomRange(min: Float, max: Float): Float = min + random.nextFloat() * (max - min)
-    private fun lerp(a: Float, b: Float, t: Float): Float = a + (b - a) * t
+    private fun randomRange(min: Float, max: Float): Float = min + (random.nextFloat() * (max - min))
+    private fun lerp(a: Float, b: Float, t: Float): Float = a + ((b - a) * t)
 
     private data class Pulse(val x: Float, val y: Float, var life: Float)
 }
@@ -788,7 +788,7 @@ private class Ball(x0: Float, y0: Float, radius: Float, random: Random) {
             vy = 0f
         }
 
-        val maxSpeed = 4f + energy * 3f
+        val maxSpeed = 4f + (energy * 3f)
         val speedSq = vx * vx + vy * vy
         if (speedSq.isFinite() && speedSq > maxSpeed * maxSpeed && speedSq > 0f) {
             val scale = maxSpeed / sqrt(speedSq)
@@ -812,17 +812,17 @@ private class Ball(x0: Float, y0: Float, radius: Float, random: Random) {
     }
 
     fun pulse(simTimeSeconds: Float): Float =
-        0.85f + sin(simTimeSeconds * pulseSpeedPerSecond + pulseOffset) * 0.15f
+        0.85f + (sin((simTimeSeconds * pulseSpeedPerSecond) + pulseOffset) * 0.15f)
 
     private fun edges(width: Int, height: Int) {
         val margin = max(5f, r * 5f)
-        if (x > width + margin) x = -margin else if (x < -margin) x = width + margin
-        if (y > height + margin) y = -margin else if (y < -margin) y = height + margin
+        if (x > (width + margin)) x = -margin else if (x < -margin) x = width + margin
+        if (y > (height + margin)) y = -margin else if (y < -margin) y = height + margin
     }
 
     companion object {
         private fun randomRange(random: Random, min: Float, max: Float): Float =
-            min + random.nextFloat() * (max - min)
+            min + (random.nextFloat() * (max - min))
     }
 }
 
@@ -836,15 +836,15 @@ private class BackgroundAstrophage(x0: Float, y0: Float, random: Random) {
     var vy: Float
     private val phase = randomRange(random, 0f, PI.toFloat() * 2f)
     private val wobbleSpeed = randomRange(random, 0.10f, 0.28f)
-    private val wobble = randomRange(random, 0.003f, 0.015f) * lerp(0.4f, 1f, depth)
-    private val baseAlpha = randomRange(random, 0.12f, 0.45f) * lerp(0.55f, 1f, depth)
+    private val wobble = randomRange(random, 0.003f, 0.015f) * lerp(0.4f, depth)
+    private val baseAlpha = randomRange(random, 0.12f, 0.45f) * lerp(0.55f, depth)
     private val twinkleOffset = randomRange(random, 0f, PI.toFloat() * 2f)
     private val twinkleSpeedPerSecond = randomRange(random, 0.24f, 1.08f)
 
     init {
         if (random.nextFloat() < 0.02f) size = 3
         val angle = randomRange(random, 0f, PI.toFloat() * 2f)
-        val speed = randomRange(random, 0.015f, 0.055f) * lerp(0.35f, 1f, depth)
+        val speed = randomRange(random, 0.015f, 0.055f) * lerp(0.35f, depth)
         vx = cos(angle) * speed
         vy = sin(angle) * speed
     }
@@ -857,11 +857,11 @@ private class BackgroundAstrophage(x0: Float, y0: Float, random: Random) {
         flowTime: Float,
         width: Int,
         height: Int,
-        stepScale: Float
+        stepScale: Float,
     ) {
-        val wobbleAngle = flowTime * wobbleSpeed + phase
-        x += (vx + cos(wobbleAngle) * wobble) * stepScale
-        y += (vy + sin(wobbleAngle * 1.13f) * wobble) * stepScale
+        val wobbleAngle = (flowTime * wobbleSpeed) + phase
+        x += (vx + (cos(wobbleAngle) * wobble)) * stepScale
+        y += (vy + (sin(wobbleAngle * 1.13f) * wobble)) * stepScale
 
         if (!x.isFinite() || !y.isFinite()) {
             x = width * 0.5f
@@ -877,14 +877,14 @@ private class BackgroundAstrophage(x0: Float, y0: Float, random: Random) {
                 val distanceSq = dx * dx + dy * dy
                 if (!distanceSq.isFinite() || distanceSq <= 0f || distanceSq > maxDistanceSq) continue
                 val distance = sqrt(distanceSq)
-                val influence = (1f - distance / maxDistance) * a.strength
+                val influence = (1f - (distance / maxDistance)) * a.strength
                 if (influence <= 0f) continue
                 val nx = dx / distance
                 val ny = dy / distance
-                val attraction = influence * 0.004f * stepScale
-                val swirl = influence * 0.0018f * a.direction * stepScale
-                vx += nx * attraction - ny * swirl
-                vy += ny * attraction + nx * swirl
+                val attraction = (influence * 0.004f) * stepScale
+                val swirl = (influence * 0.0018f) * a.direction * stepScale
+                vx += (nx * attraction) - (ny * swirl)
+                vy += (ny * attraction) + (nx * swirl)
             }
 
             if (!vx.isFinite() || !vy.isFinite()) {
@@ -892,8 +892,8 @@ private class BackgroundAstrophage(x0: Float, y0: Float, random: Random) {
                 vy = 0f
             }
 
-            val speedSq = vx * vx + vy * vy
-            val maxSpeed = 0.14f + depth * 0.22f
+            val speedSq = (vx * vx) + (vy * vy)
+            val maxSpeed = 0.14f + (depth * 0.22f)
             if (speedSq.isFinite() && speedSq > maxSpeed * maxSpeed && speedSq > 0f) {
                 val scale = maxSpeed / sqrt(speedSq)
                 vx *= scale
@@ -902,19 +902,19 @@ private class BackgroundAstrophage(x0: Float, y0: Float, random: Random) {
         }
 
         val margin = 4f
-        if (x > width + margin) x = -margin else if (x < -margin) x = width + margin
-        if (y > height + margin) y = -margin else if (y < -margin) y = height + margin
+        if (x > (width + margin)) x = -margin else if (x < -margin) x = width + margin
+        if (y > (height + margin)) y = -margin else if (y < -margin) y = height + margin
     }
 
     fun alpha(simTimeSeconds: Float): Float {
-        val twinkle = 0.78f + sin(simTimeSeconds * twinkleSpeedPerSecond + twinkleOffset) * 0.22f
+        val twinkle = 0.78f + (sin((simTimeSeconds * twinkleSpeedPerSecond) + twinkleOffset) * 0.22f)
         return (baseAlpha * twinkle).coerceIn(0.04f, 0.60f)
     }
 
     companion object {
         private fun randomRange(random: Random, min: Float, max: Float): Float =
-            min + random.nextFloat() * (max - min)
-        private fun lerp(a: Float, b: Float, t: Float): Float = a + (b - a) * t
+            min + (random.nextFloat() * (max - min))
+        private fun lerp(a: Float, t: Float): Float = a + (t * (1f - a))
     }
 }
 
@@ -946,14 +946,14 @@ private object SimpleNoise {
         return lerp(lerp(x00, x10, v), lerp(x01, x11, v), w)
     }
 
-    private fun smooth(t: Float): Float = t * t * (3f - 2f * t)
-    private fun lerp(a: Float, b: Float, t: Float): Float = a + (b - a) * t
+    private fun smooth(t: Float): Float = t * t * (3f - (2f * t))
+    private fun lerp(a: Float, b: Float, t: Float): Float = a + ((b - a) * t)
 
     private fun hash(x: Int, y: Int, z: Int): Float {
-        var n = x * 374761393 + y * 668265263 + z * 2147483647
+        var n = (x * 374761393) + (y * 668265263) + (z * 2147483647)
         n = (n xor (n ushr 13)) * 1274126177
         n = n xor (n ushr 16)
-        return (n and 0x7fffffff) / 2147483647f
+        return ((n and 0x7fffffff).toDouble() / 2147483647.0).toFloat()
     }
 }
 

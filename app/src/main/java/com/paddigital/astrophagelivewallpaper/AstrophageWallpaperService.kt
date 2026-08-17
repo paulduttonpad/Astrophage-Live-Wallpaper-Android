@@ -11,8 +11,6 @@ import android.service.wallpaper.WallpaperService
 import android.view.MotionEvent
 import android.view.Surface
 import android.view.SurfaceHolder
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.math.abs
 import kotlin.math.ceil
 
 class AstrophageWallpaperService : WallpaperService() {
@@ -84,21 +82,21 @@ class AstrophageWallpaperService : WallpaperService() {
                 }
                 updateSurfaceFrameRateHint(0)
             }
-            scheduleRendering(immediate = true)
+            scheduleRendering()
         }
 
         override fun onSurfaceCreated(holder: SurfaceHolder) {
             super.onSurfaceCreated(holder)
             surfaceReady = true
             renderHandler.post { renderer.surfaceCreated() }
-            scheduleRendering(immediate = true)
+            scheduleRendering()
         }
 
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
             super.onSurfaceChanged(holder, format, width, height)
             surfaceReady = true
             renderHandler.post { renderer.resize(width, height) }
-            scheduleRendering(immediate = true)
+            scheduleRendering()
         }
 
         override fun onSurfaceRedrawNeeded(holder: SurfaceHolder) {
@@ -136,7 +134,7 @@ class AstrophageWallpaperService : WallpaperService() {
                     touching = false
                     markInteraction()
                     renderer.setAttractors(emptyList())
-                    scheduleRendering(immediate = true)
+                    scheduleRendering()
                     return
                 }
             }
@@ -152,7 +150,7 @@ class AstrophageWallpaperService : WallpaperService() {
                 addMergedAttractor(points, x, y, if (pointerId % 2 == 0) 1f else -1f)
             }
             renderer.setAttractors(points)
-            scheduleRendering(immediate = true)
+            scheduleRendering()
         }
 
         override fun onOffsetsChanged(
@@ -166,7 +164,7 @@ class AstrophageWallpaperService : WallpaperService() {
             if (config.parallaxEnabled) {
                 renderer.setLauncherOffset(xOffset.coerceIn(0f, 1f))
                 markInteraction()
-                scheduleRendering(immediate = true)
+                scheduleRendering()
             }
         }
 
@@ -181,7 +179,7 @@ class AstrophageWallpaperService : WallpaperService() {
             if (config.touchEnabled && action == WallpaperManager.COMMAND_TAP) {
                 renderer.pulseAt(x.toFloat(), y.toFloat())
                 markInteraction()
-                scheduleRendering(immediate = true)
+                scheduleRendering()
             }
             return super.onCommand(action, x, y, z, extras, resultRequested)
         }
@@ -210,7 +208,7 @@ class AstrophageWallpaperService : WallpaperService() {
                     renderer.updateConfig(config)
                 }
                 if (this@AstrophageEngine.visible) {
-                    scheduleRendering(immediate = true)
+                    scheduleRendering()
                 }
             }
         }
@@ -237,16 +235,11 @@ class AstrophageWallpaperService : WallpaperService() {
             return if (touching || recent) config.powerMode.interactionFps else config.powerMode.idleFps
         }
 
-        private fun scheduleRendering(immediate: Boolean) {
+        private fun scheduleRendering() {
             renderHandler.removeCallbacks(renderRunnable)
             if (!visible || !surfaceReady) return
-            if (immediate) {
-                nextFrameAtMs = 0.0
-                renderHandler.post(renderRunnable)
-            } else {
-                val fps = targetFps(SystemClock.uptimeMillis())
-                scheduleNextFrame(SystemClock.uptimeMillis(), fps)
-            }
+            nextFrameAtMs = 0.0
+            renderHandler.post(renderRunnable)
         }
 
         private fun scheduleNextFrame(now: Long, fps: Int) {

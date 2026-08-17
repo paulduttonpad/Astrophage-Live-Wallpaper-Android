@@ -3,4 +3,26 @@
     <string name="wallpaper_name">Astrophage</string>
     <string name="wallpaper_description">GPU-accelerated interactive Astrophage Petrova-line live wallpaper.</string>
     <string name="settings_name">Astrophage Settings</string>
+    <string name="settings_title">Astrophage Settings</string>
+    <string name="settings_description">V2 uses GPU particle rendering, GPU trails and adaptive frame pacing. Balanced is recommended for everyday use.</string>
+    <string name="settings_foreground_particles">Foreground particles</string>
+    <string name="settings_background_particles">Background particles</string>
+    <string name="settings_trail_fade">Trail fade</string>
+    <string name="settings_touch_interaction">Touch interaction</string>
+    <string name="settings_parallax">React to home-screen page swipes</string>
+    <string name="settings_power_mode">Power mode</string>
+    <string name="settings_battery_saver">Battery Saver — 15 FPS idle / 30 FPS interaction, fewer particles, half-resolution GPU trails.</string>
+    <string name="settings_balanced">Balanced — 20 FPS idle / up to 60 FPS interaction, reduced-resolution GPU trails. Recommended.</string>
+    <string name="settings_max_quality">Maximum Quality — 30 FPS idle / up to 60 FPS interaction, maximum particle and trail quality.</string>
+    <string name="settings_tip">Tip: Battery Saver is best if the wallpaper is visible for long periods. The simulation is time-based, so lower idle FPS reduces power without slowing the Astrophage motion.</string>
+    <string name="settings_done">Done</string>
+    <string name="settings_high">High</string>
+    <string name="settings_medium">Medium</string>
+    <string name="settings_low">Low</string>
+    <string name="main_title">ASTROPHAGE</string>
+    <string name="main_description">GPU-accelerated interactive Android live wallpaper</string>
+    <string name="main_preview_button">Preview / Set Live Wallpaper</string>
+    <string name="main_settings_button">Astrophage Settings</string>
+    <string name="main_footer">V2 renders the Astrophage glow and trails on the GPU and automatically lowers its frame rate while idle to reduce battery use. Touch/multi-touch and home-screen swipe interaction remain enabled.</string>
+    <string name="settings_label_format">%1$s: %2$s</string>
 </resources>

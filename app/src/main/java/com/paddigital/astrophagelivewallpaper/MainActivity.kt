@@ -26,39 +26,52 @@ class MainActivity : Activity() {
             setBackgroundColor(Color.BLACK)
         }
 
-        root.addView(TextView(this).apply {
-            text = "ASTROPHAGE"
-            textSize = 32f
-            setTextColor(Color.WHITE)
-            gravity = Gravity.CENTER
-        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        root.addView(
+            TextView(this).apply {
+                text = getString(R.string.main_title)
+                textSize = 32f
+                setTextColor(Color.WHITE)
+                gravity = Gravity.CENTER
+            },
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
+        )
 
-        root.addView(TextView(this).apply {
-            text = "GPU-accelerated interactive Android live wallpaper"
-            textSize = 16f
-            setTextColor(Color.rgb(210, 210, 210))
-            gravity = Gravity.CENTER
-            setPadding(0, dp(10), 0, dp(28))
-        })
+        root.addView(
+            TextView(this).apply {
+                text = getString(R.string.main_description)
+                textSize = 16f
+                setTextColor(Color.rgb(210, 210, 210))
+                gravity = Gravity.CENTER
+                setPadding(0, dp(10), 0, dp(28))
+            },
+        )
 
-        root.addView(Button(this).apply {
-            text = "Preview / Set Live Wallpaper"
-            setOnClickListener { openWallpaperPreview() }
-        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(56)))
+        root.addView(
+            Button(this).apply {
+                text = getString(R.string.main_preview_button)
+                setOnClickListener { openWallpaperPreview() }
+            },
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(56)),
+        )
 
-        root.addView(Button(this).apply {
-            text = "Astrophage Settings"
-            setOnClickListener { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) }
-        }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(56)).apply {
-            topMargin = dp(14)
-        })
+        root.addView(
+            Button(this).apply {
+                text = getString(R.string.main_settings_button)
+                setOnClickListener { startActivity(Intent(this@MainActivity, SettingsActivity::class.java)) }
+            },
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(56)).apply {
+                topMargin = dp(14)
+            },
+        )
 
-        root.addView(TextView(this).apply {
-            text = "V2 renders the Astrophage glow and trails on the GPU and automatically lowers its frame rate while idle to reduce battery use. Touch/multi-touch and home-screen swipe interaction remain enabled."
-            textSize = 14f
-            setTextColor(Color.rgb(170, 170, 170))
-            setPadding(0, dp(28), 0, 0)
-        })
+        root.addView(
+            TextView(this).apply {
+                text = getString(R.string.main_footer)
+                textSize = 14f
+                setTextColor(Color.rgb(170, 170, 170))
+                setPadding(0, dp(28), 0, 0)
+            },
+        )
 
         setContentView(root)
     }
