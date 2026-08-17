@@ -395,29 +395,29 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
 
         for (p in backgroundParticles) {
             val alpha = p.alpha(simTimeSeconds)
-            addVertex(p.x, p.y, max(3.0f, p.size.toFloat() * 2.9f), alpha, KIND_BACKGROUND)
+            addVertex(p.x, p.y, max(6.0f, p.size.toFloat() * 5.8f), alpha, KIND_BACKGROUND)
             if (p.spark) {
-                addVertex(p.x, p.y, max(4f, p.size * 3.6f), min(0.75f, alpha * 1.4f), KIND_SPARK)
+                addVertex(p.x, p.y, max(8f, p.size * 7.2f), min(0.75f, alpha * 1.4f), KIND_SPARK)
             }
         }
 
         for (ball in particles) {
             val pulseValue = ball.pulse(simTimeSeconds)
             if (ball.bokeh) {
-                var size = ball.r * lerp(4f, 11f, ball.depth)
+                var size = ball.r * lerp(8f, 22f, ball.depth)
                 size *= pulseValue * (1f + ball.energy * 0.5f)
-                val drawSize = max(30f, size * 3.1f)
+                val drawSize = max(60f, size * 3.1f)
                 val alpha = (0.10f + ball.depth * 0.12f + ball.energy * 0.12f).coerceIn(0.07f, 0.40f)
                 addVertex(ball.x, ball.y, drawSize, alpha, KIND_BOKEH, ball.energy)
             } else {
-                var size = ball.r * lerp(0.7f, 1.8f, ball.depth)
+                var size = ball.r * lerp(1.4f, 3.6f, ball.depth)
                 size *= 1f + ball.energy * 0.8f
-                val drawSize = max(8f, size * (7.5f + ball.energy * 3.5f) * pulseValue)
+                val drawSize = max(16f, size * (7.5f + ball.energy * 3.5f) * pulseValue)
                 val alpha = (0.25f + ball.depth * 0.45f + ball.energy * 0.30f).coerceIn(0.15f, 1f)
                 addVertex(ball.x, ball.y, drawSize, alpha, KIND_ASTROPHAGE, ball.energy)
 
                 if (ball.spark) {
-                    val sparkSize = max(5.0f, drawSize * 0.34f)
+                    val sparkSize = max(10.0f, drawSize * 0.34f)
                     val sparkAlpha = (0.25f + ball.energy * 0.55f).coerceIn(0f, 0.9f)
                     addVertex(ball.x, ball.y, sparkSize, sparkAlpha, KIND_SPARK, ball.energy)
                 }
