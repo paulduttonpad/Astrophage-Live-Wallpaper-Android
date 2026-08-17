@@ -45,7 +45,11 @@ class AstrophageWallpaperService : WallpaperService() {
             override fun run() {
                 if (!visible || !surfaceReady) return
 
-                renderer.render()
+                try {
+                    renderer.render()
+                } catch (e: Exception) {
+                    android.util.Log.e("AstrophageEngine", "Render failed", e)
+                }
 
                 val now = SystemClock.uptimeMillis()
                 val fps = targetFps(now)
@@ -58,22 +62,27 @@ class AstrophageWallpaperService : WallpaperService() {
             super.onCreate(surfaceHolder)
             renderer = GpuAstrophageRenderer(surfaceHolder)
             renderer.updateConfig(config)
-            setTouchEventsEnabled(config.touchEnabled)
+            // Always enable touch events at the system level. 
+            // We filter them based on user preference in onTouchEvent.
+            // This prevents a 5-second UI thread hang that can occur when 
+            // dynamically toggling window flags during activity transitions.
+            setTouchEventsEnabled(true)
             setOffsetNotificationsEnabled(true)
             prefs.registerOnSharedPreferenceChangeListener(this)
         }
 
         override fun onVisibilityChanged(visible: Boolean) {
             this.visible = visible
-            if (!visible) {
+            if (visible) {
+                surfaceReady = surfaceHolder.surface.isValid
+                if (::renderer.isInitialized) renderHandler.post { renderer.resetFrameClock() }
+            } else {
                 touching = false
                 if (::renderer.isInitialized) {
                     renderer.setAttractors(emptyList())
                     renderHandler.post { renderer.resetFrameClock() }
                 }
                 updateSurfaceFrameRateHint(0)
-            } else {
-                if (::renderer.isInitialized) renderHandler.post { renderer.resetFrameClock() }
             }
             scheduleRendering(immediate = true)
         }
@@ -178,12 +187,13 @@ class AstrophageWallpaperService : WallpaperService() {
         }
 
         override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-            // Check if the preference change is relevant to the wallpaper.
-            val isRelevant = key == null || 
-                key.endsWith("_density") || 
-                key.endsWith("_strength") || 
-                key.endsWith("_enabled") || 
-                key.startsWith("power_mode")
+            val isRelevant = key == null ||
+                key == WallpaperPreferences.KEY_FOREGROUND ||
+                key == WallpaperPreferences.KEY_BACKGROUND ||
+                key == WallpaperPreferences.KEY_TRAILS ||
+                key == WallpaperPreferences.KEY_TOUCH ||
+                key == WallpaperPreferences.KEY_PARALLAX ||
+                key == WallpaperPreferences.KEY_POWER_MODE
 
             if (!isRelevant) return
 
@@ -191,18 +201,18 @@ class AstrophageWallpaperService : WallpaperService() {
             if (newConfig == config) return
             config = newConfig
 
-            setTouchEventsEnabled(config.touchEnabled)
-            if (!config.touchEnabled) {
-                touching = false
-                renderer.setAttractors(emptyList())
+            renderHandler.post {
+                if (::renderer.isInitialized) {
+                    if (!config.touchEnabled) {
+                        touching = false
+                        renderer.setAttractors(emptyList())
+                    }
+                    renderer.updateConfig(config)
+                }
+                if (this@AstrophageEngine.visible) {
+                    scheduleRendering(immediate = true)
+                }
             }
-            renderHandler.post { renderer.updateConfig(config) }
-
-            // Reset timing logic safely.
-            scheduledFps = 0
-            hintedFps = -1
-            nextFrameAtMs = 0.0
-            scheduleRendering(immediate = true)
         }
 
         private fun addMergedAttractor(result: MutableList<Attractor>, x: Float, y: Float, direction: Float) {
@@ -277,11 +287,18 @@ class AstrophageWallpaperService : WallpaperService() {
             surfaceReady = false
             touching = false
             prefs.unregisterOnSharedPreferenceChangeListener(this)
+
+            // Ensure no further render runnables are posted.
             renderHandler.removeCallbacksAndMessages(null)
+
             if (::renderer.isInitialized) {
-                renderHandler.post {
-                    renderer.release()
-                    renderThread.quitSafely()
+                // Post at front to ensure immediate cleanup before thread exit.
+                renderHandler.postAtFrontOfQueue {
+                    try {
+                        renderer.release()
+                    } finally {
+                        renderThread.quitSafely()
+                    }
                 }
             } else {
                 renderThread.quitSafely()

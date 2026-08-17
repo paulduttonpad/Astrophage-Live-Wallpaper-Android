@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace = "com.paddigital.astrophagelivewallpaper"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.paddigital.astrophagelivewallpaper"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 3
         versionName = "2.0.3"
     }

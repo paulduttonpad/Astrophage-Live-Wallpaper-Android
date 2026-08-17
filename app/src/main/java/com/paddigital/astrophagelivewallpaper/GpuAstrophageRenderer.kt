@@ -155,14 +155,28 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
     }
 
     fun render(force: Boolean = false) {
+        if (force) {
+            Log.d(TAG, "Forcing EGL surface recreation")
+            releaseEglSurface()
+        }
+
+        if (!holder.surface.isValid) {
+            releaseEglSurface()
+            return
+        }
+
         if (!ensureEgl()) return
         if (!ensureGlResources()) return
 
         val bounds = holder.surfaceFrame
-        if ((width <= 1 || height <= 1) && bounds.width() > 0 && bounds.height() > 0) {
+        var currentWidth = width
+        var currentHeight = height
+        if ((currentWidth <= 1 || currentHeight <= 1) && bounds.width() > 0 && bounds.height() > 0) {
             resize(bounds.width(), bounds.height())
+            currentWidth = width
+            currentHeight = height
         }
-        if (width <= 1 || height <= 1) return
+        if (currentWidth <= 1 || currentHeight <= 1) return
 
         if (buffersDirty && !recreateTrailBuffers()) return
 
@@ -532,6 +546,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
 
         if (eglSurface == EGL14.EGL_NO_SURFACE) {
             val surfaceAttributes = intArrayOf(EGL14.EGL_NONE)
+            Log.d(TAG, "Creating EGL window surface...")
             eglSurface = EGL14.eglCreateWindowSurface(
                 eglDisplay,
                 chosenConfig,
@@ -539,10 +554,15 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
                 surfaceAttributes,
                 0
             )
-            if (eglSurface == null || eglSurface == EGL14.EGL_NO_SURFACE) return false
+            if (eglSurface == null || eglSurface == EGL14.EGL_NO_SURFACE) {
+                Log.e(TAG, "eglCreateWindowSurface failed: 0x${Integer.toHexString(EGL14.eglGetError())}")
+                return false
+            }
+            Log.d(TAG, "EGL window surface created")
         }
 
         if (!EGL14.eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext)) {
+            Log.e(TAG, "eglMakeCurrent failed: 0x${Integer.toHexString(EGL14.eglGetError())}")
             releaseEglSurface()
             return false
         }
@@ -679,6 +699,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
 
     private fun releaseEglSurface() {
         if (eglDisplay != EGL14.EGL_NO_DISPLAY && eglSurface != EGL14.EGL_NO_SURFACE) {
+            Log.d(TAG, "Releasing EGL surface")
             EGL14.eglMakeCurrent(
                 eglDisplay,
                 EGL14.EGL_NO_SURFACE,
