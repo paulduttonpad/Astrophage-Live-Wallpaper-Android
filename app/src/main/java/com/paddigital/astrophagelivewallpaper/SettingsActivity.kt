@@ -4,13 +4,16 @@ import android.app.Activity
 import android.app.WallpaperManager
 import android.content.ComponentName
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
@@ -87,6 +90,100 @@ class SettingsActivity : Activity() {
         root.addView(bar, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         }
 
+        fun hueSlider(
+            title: String,
+            initialShiftDegrees: Int,
+            onChanged: (Int) -> Unit,
+        ) {
+            val label = TextView(this).apply {
+                textSize = 16f
+                setTextColor(Color.WHITE)
+                setPadding(0, dp(22), 0, dp(4))
+            }
+            root.addView(label)
+
+            val rainbowColors = intArrayOf(
+                Color.HSVToColor(floatArrayOf((358.7f + 0f) % 360f, 0.95f, 1f)),
+                Color.HSVToColor(floatArrayOf((358.7f + 60f) % 360f, 0.95f, 1f)),
+                Color.HSVToColor(floatArrayOf((358.7f + 120f) % 360f, 0.95f, 1f)),
+                Color.HSVToColor(floatArrayOf((358.7f + 180f) % 360f, 0.95f, 1f)),
+                Color.HSVToColor(floatArrayOf((358.7f + 240f) % 360f, 0.95f, 1f)),
+                Color.HSVToColor(floatArrayOf((358.7f + 300f) % 360f, 0.95f, 1f)),
+                Color.HSVToColor(floatArrayOf((358.7f + 360f) % 360f, 0.95f, 1f)),
+            )
+
+            val sliderContainer = FrameLayout(this).apply {
+                setPadding(0, dp(6), 0, dp(6))
+            }
+
+            val trackView = View(this).apply {
+                background = GradientDrawable(
+                    GradientDrawable.Orientation.LEFT_RIGHT,
+                    rainbowColors,
+                ).apply {
+                    cornerRadius = dp(4).toFloat()
+                }
+            }
+
+            val trackParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(8),
+            ).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                leftMargin = dp(12)
+                rightMargin = dp(12)
+            }
+            sliderContainer.addView(trackView, trackParams)
+
+            val bar = SeekBar(this).apply {
+                max = 360
+                progress = initialShiftDegrees
+                progressBackgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
+                progressTintList = ColorStateList.valueOf(Color.TRANSPARENT)
+            }
+
+            fun updateColor(degrees: Int) {
+                val effectiveHue = (358.7f + degrees) % 360f
+                val currentColor = Color.HSVToColor(floatArrayOf(effectiveHue, 0.95f, 1f))
+                val colorStateList = ColorStateList.valueOf(currentColor)
+                bar.thumbTintList = colorStateList
+
+                val displayStr = if (degrees == 0) "0° (Red)" else "$degrees°"
+                label.text = getString(R.string.settings_label_format, title, displayStr)
+            }
+
+            updateColor(initialShiftDegrees)
+
+            bar.setOnSeekBarChangeListener(
+                object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                        updateColor(progress)
+                        if (fromUser) {
+                            onChanged(progress)
+                        }
+                    }
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                        onChanged(bar.progress)
+                    }
+                },
+            )
+
+            val barParams = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            )
+            sliderContainer.addView(bar, barParams)
+
+            root.addView(
+                sliderContainer,
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                ),
+            )
+        }
+
         // Inverted labels: Higher numeric values now represent higher particle density.
         slider(
             getString(R.string.settings_foreground_particles),
@@ -131,6 +228,15 @@ class SettingsActivity : Activity() {
                 val alpha = 0.06f + ((value / 100f) * (0.45f - 0.06f))
                 prefs.edit().putFloat(WallpaperPreferences.KEY_TRAILS, alpha).apply()
             }
+
+        val hueInitial = (config.hueShift * 360f).toInt().coerceIn(0, 360)
+        hueSlider(
+            getString(R.string.settings_color_hue),
+            hueInitial,
+        ) { value ->
+            val hue = value / 360f
+            prefs.edit().putFloat(WallpaperPreferences.KEY_HUE, hue).apply()
+        }
 
         root.addView(
             CheckBox(this).apply {

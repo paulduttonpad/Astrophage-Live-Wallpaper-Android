@@ -11,6 +11,7 @@ object WallpaperPreferences {
     const val KEY_TRAILS = "trail_strength"
     const val KEY_TOUCH = "touch_enabled"
     const val KEY_PARALLAX = "parallax_enabled"
+    const val KEY_HUE = "hue_shift"
 
     // V1 key retained solely so existing installs can be migrated in-place.
     const val KEY_FPS = "fps_limit"
@@ -48,6 +49,7 @@ object WallpaperPreferences {
         val touchEnabled: Boolean = true,
         val parallaxEnabled: Boolean = true,
         val powerMode: PowerMode = PowerMode.BALANCED,
+        val hueShift: Float = 0.0f,
     )
 
     fun prefs(context: Context): SharedPreferences =
@@ -75,6 +77,7 @@ object WallpaperPreferences {
             touchEnabled = p.getBoolean(KEY_TOUCH, true),
             parallaxEnabled = p.getBoolean(KEY_PARALLAX, true),
             powerMode = migratePowerModeIfNeeded(p),
+            hueShift = p.getFloat(KEY_HUE, 0.0f).coerceIn(0.0f, 1.0f),
         )
     }
 }

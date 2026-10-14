@@ -435,6 +435,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
         val energyLoc = GLES20.glGetAttribLocation(particleProgram, "aEnergy")
         val resolutionLoc = GLES20.glGetUniformLocation(particleProgram, "uResolution")
         val pointScaleLoc = GLES20.glGetUniformLocation(particleProgram, "uPointScale")
+        val hueShiftLoc = GLES20.glGetUniformLocation(particleProgram, "uHueShift")
 
         val stride = FLOATS_PER_PARTICLE * 4
         particleBuffer.position(0)
@@ -455,6 +456,7 @@ internal class GpuAstrophageRenderer(private val holder: SurfaceHolder) {
 
         GLES20.glUniform2f(resolutionLoc, width.toFloat(), height.toFloat())
         GLES20.glUniform1f(pointScaleLoc, pointScale)
+        GLES20.glUniform1f(hueShiftLoc, config.hueShift)
         GLES20.glDrawArrays(GLES20.GL_POINTS, 0, count)
 
         GLES20.glDisableVertexAttribArray(positionLoc)
@@ -985,6 +987,23 @@ precision mediump float;
 varying float vAlpha;
 varying float vKind;
 varying float vEnergy;
+uniform float uHueShift;
+
+vec3 rgb2hsv(vec3 c) {
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+    float d = q.x - min(q.w, q.y);
+    float e = 1.0e-10;
+    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+vec3 hsv2rgb(vec3 c) {
+    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - 3.0);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
 
 void main() {
     vec2 p = gl_PointCoord - vec2(0.5);
@@ -997,23 +1016,43 @@ void main() {
     if (vKind < 0.5) {
         float core = 1.0 - smoothstep(0.10, 1.0, d);
         color = vec3(1.0, 0.055, 0.075);
+        if (uHueShift > 0.001) {
+            vec3 hsv = rgb2hsv(color);
+            hsv.x = fract(hsv.x + uHueShift);
+            color = hsv2rgb(hsv);
+        }
         alpha = vAlpha * core;
     } else if (vKind < 1.5) {
         float core = 1.0 - smoothstep(0.00, 0.16, d);
         float inner = 1.0 - smoothstep(0.04, 0.42, d);
         float outer = 1.0 - smoothstep(0.18, 1.00, d);
         color = vec3(1.0, 0.035 + inner * 0.24, 0.045 + inner * 0.20);
+        if (uHueShift > 0.001) {
+            vec3 hsv = rgb2hsv(color);
+            hsv.x = fract(hsv.x + uHueShift);
+            color = hsv2rgb(hsv);
+        }
         color += vec3(core * (0.75 + vEnergy * 0.25));
         alpha = vAlpha * (outer * 0.30 + inner * 0.52 + core * 0.90);
     } else if (vKind < 2.5) {
         float soft = 1.0 - smoothstep(0.05, 1.0, d);
         float centre = 1.0 - smoothstep(0.00, 0.35, d);
         color = vec3(1.0, 0.08 + centre * 0.16, 0.10 + centre * 0.14);
+        if (uHueShift > 0.001) {
+            vec3 hsv = rgb2hsv(color);
+            hsv.x = fract(hsv.x + uHueShift);
+            color = hsv2rgb(hsv);
+        }
         alpha = vAlpha * soft * 0.72;
     } else {
         float core = 1.0 - smoothstep(0.00, 0.28, d);
         float glow = 1.0 - smoothstep(0.10, 1.0, d);
         color = vec3(1.0, 0.68 + core * 0.32, 0.68 + core * 0.32);
+        if (uHueShift > 0.001) {
+            vec3 hsv = rgb2hsv(color);
+            hsv.x = fract(hsv.x + uHueShift);
+            color = hsv2rgb(hsv);
+        }
         alpha = vAlpha * (glow * 0.45 + core * 0.90);
     }
 

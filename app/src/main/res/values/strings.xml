@@ -8,6 +8,7 @@
     <string name="settings_foreground_particles">Foreground particles</string>
     <string name="settings_background_particles">Background particles</string>
     <string name="settings_trail_fade">Trail fade</string>
+    <string name="settings_color_hue">Colour hue</string>
     <string name="settings_touch_interaction">Touch interaction</string>
     <string name="settings_parallax">React to home-screen page swipes</string>
     <string name="settings_power_mode">Power mode</string>

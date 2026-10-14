@@ -191,7 +191,8 @@ class AstrophageWallpaperService : WallpaperService() {
                 key == WallpaperPreferences.KEY_TRAILS ||
                 key == WallpaperPreferences.KEY_TOUCH ||
                 key == WallpaperPreferences.KEY_PARALLAX ||
-                key == WallpaperPreferences.KEY_POWER_MODE
+                key == WallpaperPreferences.KEY_POWER_MODE ||
+                key == WallpaperPreferences.KEY_HUE
 
             if (!isRelevant) return
 
