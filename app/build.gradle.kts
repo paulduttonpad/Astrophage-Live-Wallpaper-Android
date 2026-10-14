@@ -10,8 +10,8 @@ android {
         applicationId = "com.paddigital.astrophagelivewallpaper"
         minSdk = 26
         targetSdk = 37
-        versionCode = 3
-        versionName = "2.0.3"
+        versionCode = 4
+        versionName = "2.0.4"
     }
 
     buildTypes {

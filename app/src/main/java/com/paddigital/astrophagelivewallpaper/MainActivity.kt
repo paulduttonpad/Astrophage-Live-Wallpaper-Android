@@ -76,15 +76,44 @@ class MainActivity : Activity() {
         setContentView(root)
     }
 
+    companion object {
+        private const val REQUEST_CODE_SET_WALLPAPER = 1001
+    }
+
+    private var wasWallpaperSetBefore = false
+
+    private fun isWallpaperSet(): Boolean {
+        val wm = WallpaperManager.getInstance(this)
+        return wm.wallpaperInfo?.packageName == packageName
+    }
+
     private fun openWallpaperPreview() {
+        wasWallpaperSetBefore = isWallpaperSet()
         val component = ComponentName(this, AstrophageWallpaperService::class.java)
         val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
             putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, component)
         }
         try {
-            startActivity(intent)
+            startActivityForResult(intent, REQUEST_CODE_SET_WALLPAPER)
         } catch (_: Exception) {
-            startActivity(Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER))
+            try {
+                startActivityForResult(
+                    Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER),
+                    REQUEST_CODE_SET_WALLPAPER,
+                )
+            } catch (_: Exception) {
+                // fallback
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_SET_WALLPAPER) {
+            val isSetNow = isWallpaperSet()
+            if ((resultCode == RESULT_OK) || (!wasWallpaperSetBefore && isSetNow)) {
+                finishAndRemoveTask()
+            }
         }
     }
 }

@@ -1,6 +1,9 @@
 package com.paddigital.astrophagelivewallpaper
 
 import android.app.Activity
+import android.app.WallpaperManager
+import android.content.ComponentName
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
@@ -204,11 +207,28 @@ class SettingsActivity : Activity() {
 
         root.addView(
             Button(this).apply {
-                text = getString(R.string.settings_done)
+                text = getString(R.string.main_preview_button)
                 gravity = Gravity.CENTER
-                setOnClickListener { finish() }
+                setOnClickListener { openWallpaperPreview() }
             },
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(54)),
+        )
+
+        root.addView(
+            Button(this).apply {
+                text = getString(R.string.settings_done)
+                gravity = Gravity.CENTER
+                setOnClickListener {
+                    if (!isWallpaperSet()) {
+                        openWallpaperPreview()
+                    } else {
+                        finishAndRemoveTask()
+                    }
+                }
+            },
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(54)).apply {
+                topMargin = dp(12)
+            },
         )
 
         val scroll = ScrollView(this).apply {
@@ -216,5 +236,46 @@ class SettingsActivity : Activity() {
             addView(root, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         }
         setContentView(scroll)
+    }
+
+    companion object {
+        private const val REQUEST_CODE_SET_WALLPAPER = 1001
+    }
+
+    private var wasWallpaperSetBefore = false
+
+    private fun isWallpaperSet(): Boolean {
+        val wm = WallpaperManager.getInstance(this)
+        return wm.wallpaperInfo?.packageName == packageName
+    }
+
+    private fun openWallpaperPreview() {
+        wasWallpaperSetBefore = isWallpaperSet()
+        val component = ComponentName(this, AstrophageWallpaperService::class.java)
+        val intent = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
+            putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, component)
+        }
+        try {
+            startActivityForResult(intent, REQUEST_CODE_SET_WALLPAPER)
+        } catch (_: Exception) {
+            try {
+                startActivityForResult(
+                    Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER),
+                    REQUEST_CODE_SET_WALLPAPER,
+                )
+            } catch (_: Exception) {
+                // fallback
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_SET_WALLPAPER) {
+            val isSetNow = isWallpaperSet()
+            if ((resultCode == RESULT_OK) || (!wasWallpaperSetBefore && isSetNow)) {
+                finishAndRemoveTask()
+            }
+        }
     }
 }
